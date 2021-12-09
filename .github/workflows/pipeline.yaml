@@ -16,7 +16,7 @@ env:
   TESTING_STACK_NAME: contact-api
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::207262165243:role/aws-sam-cli-managed-step1-pi-PipelineExecutionRole-15YG2174WNGQ7
   TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::207262165243:role/aws-sam-cli-managed-step1-CloudFormationExecutionR-1M2VB21EDMIHW
-  TESTING_ARTIFACTS_BUCKET: 
+  TESTING_ARTIFACTS_BUCKET: aws-sam-cli-managed-step1-pipelin-artifactsbucket-wc82bhcdb78o
   # If there are functions with "Image" PackageType in your template,
   # uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to
   # testing "sam package" and "sam deploy" commands.
@@ -25,7 +25,7 @@ env:
   PROD_STACK_NAME: contact-api
   PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::207262165243:role/aws-sam-cli-managed-step1-pi-PipelineExecutionRole-15YG2174WNGQ7
   PROD_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::207262165243:role/aws-sam-cli-managed-step1-CloudFormationExecutionR-1M2VB21EDMIHW
-  PROD_ARTIFACTS_BUCKET: 
+  PROD_ARTIFACTS_BUCKET: aws-sam-cli-managed-step1-pipelin-artifactsbucket-wc82bhcdb78o
   # If there are functions with "Image" PackageType in your template,
   # uncomment the line below and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to
   # prod "sam package" and "sam deploy" commands.
