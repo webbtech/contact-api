@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   contact-api
   
-  Sample SAM Template for contact-api
+  SAM Template for contact-api
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -11,7 +11,28 @@ Globals:
     Timeout: 5
 
 Resources:
-  HelloWorldFunction:
+  ApiCertificate: # this will require logging into the certificate manager and clicking 'Create Records in Route53'
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: contact-api.webbtech.io
+      ValidationMethod: DNS
+
+  RestApi:
+    Type: AWS::Serverless::Api
+    DeletionPolicy: Delete
+    DependsOn: ContactAPIFunction
+    Properties:
+      StageName: Prod
+      Domain:
+        DomainName: contact-api.webbtech.io
+        CertificateArn: !Ref ApiCertificate
+        Route53:
+          HostedZoneId: Z2TKD92HOCUXB7
+          DistributionDomainName:
+            Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+
+  ContactAPIFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: hello-world/
@@ -26,6 +47,13 @@ Resources:
           Properties:
             Path: /hello
             Method: GET
+            RestApiId: !Ref RestApi
+        # Ping:
+        #   Type: Api
+        #   Properties:
+        #     Path: /hello
+        #     Method: GET
+        #     RestApiId: !Ref RestApi
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           PARAM1: VALUE
@@ -34,12 +62,19 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldAPI:
+  ApiId:
+    Description: API ID
+    Value:
+      Ref: RestApi
+  ApiURL:
+    Description: "API Url"
+    Value: !Sub "https://contact-api.webbtech.io/hello"
+  ContactAPI:
     Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
+    Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  ContactAPIFunction:
     Description: "First Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
+    Value: !GetAtt ContactAPIFunction.Arn
+  ContactAPIFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !GetAtt ContactAPIFunctionRole.Arn

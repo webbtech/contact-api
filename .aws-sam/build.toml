@@ -5,8 +5,9 @@
 codeuri = "/Users/rondyck/InternalProjects/webbtech/api/contact-api/hello-world"
 runtime = "go1.x"
 architecture = "x86_64"
+source_hash = "cd4e0c2c265b8f84f83247b69ff59b026d1d0fce142f1f93781975bc8a0ccdb4"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["HelloWorldFunction"]
+functions = ["ContactAPIFunction"]
 
 [layer_build_definitions]

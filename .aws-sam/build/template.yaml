@@ -2,17 +2,37 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: 'contact-api
 
-  Sample SAM Template for contact-api
+  SAM Template for contact-api
 
   '
 Globals:
   Function:
     Timeout: 5
 Resources:
-  HelloWorldFunction:
+  ApiCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: contact-api.webbtech.io
+      ValidationMethod: DNS
+  RestApi:
+    Type: AWS::Serverless::Api
+    DeletionPolicy: Delete
+    DependsOn: ContactAPIFunction
+    Properties:
+      StageName: Prod
+      Domain:
+        DomainName: contact-api.webbtech.io
+        CertificateArn:
+          Ref: ApiCertificate
+        Route53:
+          HostedZoneId: Z2TKD92HOCUXB7
+          DistributionDomainName:
+            Value:
+              Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+  ContactAPIFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: HelloWorldFunction
+      CodeUri: ContactAPIFunction
       Handler: hello-world
       Runtime: go1.x
       Architectures:
@@ -24,23 +44,33 @@ Resources:
           Properties:
             Path: /hello
             Method: GET
+            RestApiId:
+              Ref: RestApi
       Environment:
         Variables:
           PARAM1: VALUE
 Outputs:
-  HelloWorldAPI:
+  ApiId:
+    Description: API ID
+    Value:
+      Ref: RestApi
+  ApiURL:
+    Description: API Url
+    Value:
+      Fn::Sub: https://contact-api.webbtech.io/hello
+  ContactAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
-  HelloWorldFunction:
+      Fn::Sub: https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  ContactAPIFunction:
     Description: First Lambda Function ARN
     Value:
       Fn::GetAtt:
-      - HelloWorldFunction
+      - ContactAPIFunction
       - Arn
-  HelloWorldFunctionIamRole:
+  ContactAPIFunctionIamRole:
     Description: Implicit IAM Role created for Hello World function
     Value:
       Fn::GetAtt:
-      - HelloWorldFunctionRole
+      - ContactAPIFunctionRole
       - Arn
