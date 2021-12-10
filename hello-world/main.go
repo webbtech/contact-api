@@ -21,7 +21,7 @@ var (
 	ErrNon200Response = errors.New("Non 200 Response found")
 )
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func iPHandler() (events.APIGatewayProxyResponse, error) {
 	resp, err := http.Get(DefaultHTTPGetAddress)
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
@@ -41,9 +41,66 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 
 	return events.APIGatewayProxyResponse{
-		Body:       fmt.Sprintf("Hello, your IP is: %v", string(ip)),
+		Body:       fmt.Sprintf("Hello, your IP was: %v", string(ip)),
 		StatusCode: 200,
 	}, nil
+}
+
+func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	fmt.Printf("path: %+v\n", request.Path)
+
+	if request.Path == "/ping" {
+		return events.APIGatewayProxyResponse{
+			Body:       "pong",
+			StatusCode: 200,
+		}, nil
+	}
+
+	if request.Path == "/error" {
+		/* return events.APIGatewayProxyResponse{
+			Body:       ErrNon200Response.Error(),
+			StatusCode: 500,
+		}, ErrNon200Response */
+		return events.APIGatewayProxyResponse{
+			Body:       "error",
+			StatusCode: 200,
+		}, ErrNon200Response
+	}
+
+	if request.Path == "/hello" {
+		return iPHandler()
+	}
+
+	return events.APIGatewayProxyResponse{
+		Body:       "invalid request",
+		StatusCode: 404,
+	}, nil
+
+	/* resp, err := http.Get(DefaultHTTPGetAddress)
+	if err != nil {
+		return events.APIGatewayProxyResponse{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		return events.APIGatewayProxyResponse{}, ErrNon200Response
+	}
+
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return events.APIGatewayProxyResponse{}, err
+	}
+
+	if len(ip) == 0 {
+		return events.APIGatewayProxyResponse{}, ErrNoIP
+	}
+
+	fmt.Printf("request: %+v\n", request.Path)
+
+	return events.APIGatewayProxyResponse{
+		Body:       fmt.Sprintf("Hello, your IP was: %v", string(ip)),
+		StatusCode: 200,
+	}, nil */
 }
 
 func main() {

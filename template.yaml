@@ -48,12 +48,18 @@ Resources:
             Path: /hello
             Method: GET
             RestApiId: !Ref RestApi
-        # Ping:
-        #   Type: Api
-        #   Properties:
-        #     Path: /hello
-        #     Method: GET
-        #     RestApiId: !Ref RestApi
+        Ping:
+          Type: Api
+          Properties:
+            Path: /ping
+            Method: GET
+            RestApiId: !Ref RestApi
+        Err:
+          Type: Api
+          Properties:
+            Path: /error
+            Method: GET
+            RestApiId: !Ref RestApi
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           PARAM1: VALUE
