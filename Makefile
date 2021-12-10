@@ -18,4 +18,7 @@ dev-cloud-watch:
 	sam  sync --stack-name $(STACK_NAME) --watch --profile $(PROFILE)
 
 tail-logs:
-	sam logs -n HelloWorldFunction --profile pulpfree --stack-name mail-api --tail
+	sam logs -n ContactAPIFunction --profile $(PROFILE) --stack-name $(STACK_NAME) --tail
+
+tail-logs-trace:
+	sam logs -n ContactAPIFunction --profile $(PROFILE) --stack-name $(STACK_NAME) --tail --include-traces
