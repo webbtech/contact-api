@@ -50,9 +50,16 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	fmt.Printf("path: %+v\n", request.Path)
 
+	hdrs := make(map[string]string)
+	hdrs["Content-Type"] = "application/json"
+	// hdrs["Access-Control-Allow-Origin"] = "*"
+	// hdrs["Access-Control-Allow-Methods"] = "GET,OPTIONS,POST,PUT"
+	// hdrs["Access-Control-Allow-Headers"] = "Authorization,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+
 	if request.Path == "/ping" {
 		return events.APIGatewayProxyResponse{
 			Body:       "pong",
+			Headers:    hdrs,
 			StatusCode: 200,
 		}, nil
 	}
@@ -64,8 +71,9 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		}, ErrNon200Response */
 		return events.APIGatewayProxyResponse{
 			Body:       "error",
-			StatusCode: 200,
-		}, ErrNon200Response
+			Headers:    hdrs,
+			StatusCode: 404,
+		}, nil
 	}
 
 	if request.Path == "/hello" {

@@ -23,6 +23,7 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+      # docs
       Domain:
         DomainName: contact-api.webbtech.io
         CertificateArn: !Ref ApiCertificate

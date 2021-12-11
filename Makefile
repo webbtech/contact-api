@@ -1,5 +1,7 @@
 include .env
 
+// found 'watcher' at https://github.com/canthefason/go-watcher
+
 .PHONY: build
 
 build:
