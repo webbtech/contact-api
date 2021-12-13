@@ -23,12 +23,26 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+
+      # Documentation for below: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#gateway-response-object
+      # Oddly, this property does not work with sam local
+      GatewayResponses:
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            "application/json": '{ "message": $context.error.messageString }'
+          ResponseParameters:
+            Headers:
+              Access-Control-Expose-Headers: "'WWW-Authenticate'"
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'*'"
+
       # docs
       Domain:
         DomainName: contact-api.webbtech.io
         CertificateArn: !Ref ApiCertificate
         Route53:
-          HostedZoneId: Z2TKD92HOCUXB7
+          HostedZoneId: "Z2TKD92HOCUXB7"
           DistributionDomainName:
             Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
@@ -36,8 +50,8 @@ Resources:
   ContactAPIFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello-world/
-      Handler: hello-world
+      CodeUri: src/
+      Handler: contact
       Runtime: go1.x
       Architectures:
         - x86_64
@@ -60,6 +74,12 @@ Resources:
           Properties:
             Path: /error
             Method: GET
+            RestApiId: !Ref RestApi
+        Contact:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: POST
             RestApiId: !Ref RestApi
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:

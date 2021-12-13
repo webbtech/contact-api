@@ -20,6 +20,16 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+      GatewayResponses:
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            application/json: '{ "message": $context.error.messageString }'
+          ResponseParameters:
+            Headers:
+              Access-Control-Expose-Headers: '''WWW-Authenticate'''
+              Access-Control-Allow-Origin: '''*'''
+              Access-Control-Allow-Headers: '''*'''
       Domain:
         DomainName: contact-api.webbtech.io
         CertificateArn:
@@ -33,7 +43,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ContactAPIFunction
-      Handler: hello-world
+      Handler: contact
       Runtime: go1.x
       Architectures:
       - x86_64
@@ -58,6 +68,13 @@ Resources:
           Properties:
             Path: /error
             Method: GET
+            RestApiId:
+              Ref: RestApi
+        Contact:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: POST
             RestApiId:
               Ref: RestApi
       Environment:

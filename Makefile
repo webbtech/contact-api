@@ -1,6 +1,7 @@
 include .env
 
-// found 'watcher' at https://github.com/canthefason/go-watcher
+# found 'watcher' at https://github.com/canthefason/go-watcher
+# that wasn't working as expected, so found 'fswatch' at: https://github.com/emcrisostomo/fswatch
 
 .PHONY: build
 
@@ -24,3 +25,9 @@ tail-logs:
 
 tail-logs-trace:
 	sam logs -n ContactAPIFunction --profile $(PROFILE) --stack-name $(STACK_NAME) --tail --include-traces
+
+validate:
+	sam validate
+	
+watch:
+	fswatch -o ./src | xargs -n1 -I{} sam build
