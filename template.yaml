@@ -31,6 +31,8 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+      Tags:
+        BillTo: 'Webbtech'
 
       # Documentation for below: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#gateway-response-object
       # Oddly, this property does not work with sam local
@@ -91,6 +93,8 @@ Resources:
         Variables:
           RecipientEmail: !Ref ParamMailRecipient
           SenderEmail: !Ref ParamMailSender
+      Tags:
+        BillTo: 'Webbtech'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
