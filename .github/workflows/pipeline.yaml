@@ -104,8 +104,8 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides \
-              ParameterKey=ParamMailRecipient, ParameterValue=${MAIL_RECIPIENT} \
-              ParameterKey=ParamMailSender, ParameterValue=${MAIL_SENDER}
+              ParameterKey=ParamMailRecipient,ParameterValue=${MAIL_RECIPIENT} \
+              ParameterKey=ParamMailSender,ParameterValue=${MAIL_SENDER}
 
   build-and-package:
     if: github.ref == 'refs/heads/master'
@@ -198,8 +198,8 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides \
-              ParameterKey=ParamMailRecipient, ParameterValue=${MAIL_RECIPIENT} \
-              ParameterKey=ParamMailSender, ParameterValue=${MAIL_SENDER}
+              ParameterKey=ParamMailRecipient,ParameterValue=${MAIL_RECIPIENT} \
+              ParameterKey=ParamMailSender,ParameterValue=${MAIL_SENDER}
 
   integration-test:
     if: github.ref == 'refs/heads/master'
@@ -246,5 +246,5 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides \
-              ParameterKey=ParamMailRecipient, ParameterValue=${MAIL_RECIPIENT} \
-              ParameterKey=ParamMailSender, ParameterValue=${MAIL_SENDER}
+              ParameterKey=ParamMailRecipient,ParameterValue=${MAIL_RECIPIENT} \
+              ParameterKey=ParamMailSender,ParameterValue=${MAIL_SENDER}
