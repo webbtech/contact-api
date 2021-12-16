@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,56 +10,82 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	t.Run("Unable to get IP", func(t *testing.T) {
-		DefaultHTTPGetAddress = "http://127.0.0.1:1234"
 
-		r, err := handler(events.APIGatewayProxyRequest{})
-		fmt.Printf("r: %+v\n", r)
-		if err == nil {
-			t.Fatal("Error failed to trigger with an invalid request")
-		}
-	})
-
-	t.Run("Non 200 Response", func(t *testing.T) {
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(500)
-		}))
-		defer ts.Close()
-
-		DefaultHTTPGetAddress = ts.URL
-
-		_, err := handler(events.APIGatewayProxyRequest{})
-		if err != nil && err.Error() != ErrNon200Response.Error() {
-			t.Fatalf("Error failed to trigger with an invalid HTTP response: %v", err)
-		}
-	})
-
-	t.Run("Unable decode IP", func(t *testing.T) {
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(500)
-		}))
-		defer ts.Close()
-
-		DefaultHTTPGetAddress = ts.URL
-
-		_, err := handler(events.APIGatewayProxyRequest{})
-		if err == nil {
-			t.Fatal("Error failed to trigger with an invalid HTTP response")
-		}
-	})
-
-	t.Run("Successful Request", func(t *testing.T) {
+	var msg string
+	t.Run("Successful ping", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			fmt.Fprintf(w, "127.0.0.1")
 		}))
 		defer ts.Close()
 
-		DefaultHTTPGetAddress = ts.URL
+		r, err := handler(events.APIGatewayProxyRequest{Path: "/"})
 
-		_, err := handler(events.APIGatewayProxyRequest{})
+		expectedMsg := "Healthy"
+		msg = extractMessage(r.Body)
+		if msg != expectedMsg {
+			t.Fatalf("Expected error message: %s received: %s", expectedMsg, msg)
+		}
 		if err != nil {
 			t.Fatal("Everything should be ok")
 		}
 	})
+
+	t.Run("Contact request missing request body", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer ts.Close()
+
+		r, _ := handler(events.APIGatewayProxyRequest{HTTPMethod: "POST", Path: "/contact", Body: ""})
+
+		expectedMsg := "Missing input values"
+		msg = extractMessage(r.Body)
+		if msg != expectedMsg {
+			t.Fatalf("Expected error message: %s received: %s", expectedMsg, msg)
+		}
+	})
+
+	t.Run("Contact request missing input values", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer ts.Close()
+
+		input := `{"email":"test@me.com", "firstName":"Test","lastName":"Dummy","message":"My simple message"}`
+		r, _ := handler(events.APIGatewayProxyRequest{HTTPMethod: "POST", Path: "/contact", Body: input})
+
+		expectedMsg := "Missing type in input"
+		msg = extractMessage(r.Body)
+		if msg != expectedMsg {
+			t.Fatalf("Expected error message: %s received: %s", expectedMsg, msg)
+		}
+		if r.StatusCode != 400 {
+			t.Fatalf("Expected StatusCode to be: %d, recieved: %d", 400, r.StatusCode)
+		}
+	})
+
+	t.Run("Contact request missing input values", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer ts.Close()
+
+		input := `{"email":"test@me.com", "firstName":"Test","lastName":"Dummy","message":"My simple message","phone":"(905) 123-4567","type":"callback"}`
+		r, _ := handler(events.APIGatewayProxyRequest{HTTPMethod: "POST", Path: "/contact", Body: input})
+
+		expectedMsg := "Success"
+		msg = extractMessage(r.Body)
+		if msg != expectedMsg {
+			t.Fatalf("Expected error message: %s received: %s", expectedMsg, msg)
+		}
+		if r.StatusCode != 201 {
+			t.Fatalf("Expected StatusCode to be: %d, recieved: %d", 400, r.StatusCode)
+		}
+	})
+}
+
+func extractMessage(b string) (msg string) {
+	var dat map[string]string
+	_ = json.Unmarshal([]byte(b), &dat)
+	return dat["message"]
 }

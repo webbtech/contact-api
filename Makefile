@@ -9,10 +9,10 @@ build:
 	sam build
 
 local-api:
-	sam local start-api
+	sam local start-api --profile $(PROFILE)
 
 local-invoke:
-	sam local invoke
+	sam local invoke --profile $(PROFILE)
 
 dev-cloud:
 	sam  sync --stack-name $(STACK_NAME) --profile $(PROFILE)

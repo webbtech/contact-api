@@ -49,32 +49,25 @@ Resources:
       - x86_64
       Tracing: Active
       Events:
-        CatchAll:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: GET
-            RestApiId:
-              Ref: RestApi
-        Ping:
-          Type: Api
-          Properties:
-            Path: /ping
-            Method: GET
-            RestApiId:
-              Ref: RestApi
-        Err:
-          Type: Api
-          Properties:
-            Path: /error
-            Method: GET
-            RestApiId:
-              Ref: RestApi
         Contact:
           Type: Api
           Properties:
             Path: /contact
             Method: POST
+            RestApiId:
+              Ref: RestApi
+        Ping:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+            RestApiId:
+              Ref: RestApi
+        Hello:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: GET
             RestApiId:
               Ref: RestApi
       Environment:
@@ -88,7 +81,7 @@ Outputs:
   ApiURL:
     Description: API Url
     Value:
-      Fn::Sub: https://contact-api.webbtech.io/hello
+      Fn::Sub: https://contact-api.webbtech.io/
   ContactAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
     Value:

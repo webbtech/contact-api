@@ -49,44 +49,27 @@ func iPHandler() (events.APIGatewayProxyResponse, error) {
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	fmt.Printf("path: %+v\n", request.Path)
-
-	hdrs := make(map[string]string)
-	hdrs["Content-Type"] = "application/json"
-	// hdrs["Access-Control-Allow-Origin"] = "*"
-	// hdrs["Access-Control-Allow-Methods"] = "GET,OPTIONS,POST,PUT"
-	// hdrs["Access-Control-Allow-Headers"] = "Authorization,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"
+	var h handlers.Handler
 
 	switch request.Path {
-	case "/ping":
-		return events.APIGatewayProxyResponse{
-			Body:       "healthy",
-			Headers:    hdrs,
-			StatusCode: 200,
-		}, nil
+	case "/contact":
+		h = &handlers.Contact{}
+		h.Process(request)
+		return h.Response()
+
+	case "/":
+		h = &handlers.Ping{}
+		h.Process(request)
+		return h.Response()
+
 	case "/hello":
 		return iPHandler()
-	case "/contact":
-		return handlers.ContactHandler()
-		// return iPHandler()
-	}
 
-	if request.Path == "/error" {
-		/* return events.APIGatewayProxyResponse{
-			Body:       ErrNon200Response.Error(),
-			StatusCode: 500,
-		}, ErrNon200Response */
-		return events.APIGatewayProxyResponse{
-			Body:       "error",
-			Headers:    hdrs,
-			StatusCode: 401,
-		}, ErrNon200Response
+	default:
+		h = &handlers.Ping{}
+		h.Process(request)
+		return h.Response()
 	}
-
-	return events.APIGatewayProxyResponse{
-		Body:       "invalid request",
-		StatusCode: 404,
-	}, nil
 }
 
 func main() {

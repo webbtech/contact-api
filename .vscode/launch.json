@@ -7,11 +7,15 @@
       "invokeTarget": {
         "target": "template",
         "templatePath": "${workspaceFolder}/template.yaml",
-        "logicalId": "ContactAPIFunction"
+        "logicalId": "ContactAPIFunction",
       },
       "lambda": {
         "payload": {},
         "environmentVariables": {}
+      },
+      "aws": { // found this at: https://docs.aws.amazon.com/toolkit-for-vscode/latest/userguide/serverless-apps-run-debug-config-ref.html
+        "credentials": "profile:pulpfree", // this doesn't seem to work well, had to change my default profile in .aws/credentials
+        "region": "ca-central-1"
       }
     }
   ]
