@@ -23,12 +23,26 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+
+      # Documentation for below: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#gateway-response-object
+      # Oddly, this property does not work with sam local
+      GatewayResponses:
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            "application/json": '{ "message": $context.error.messageString }'
+          ResponseParameters:
+            Headers:
+              Access-Control-Expose-Headers: "'WWW-Authenticate'"
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'*'"
+
       # docs
       Domain:
         DomainName: contact-api.webbtech.io
         CertificateArn: !Ref ApiCertificate
         Route53:
-          HostedZoneId: Z2TKD92HOCUXB7
+          HostedZoneId: "Z2TKD92HOCUXB7"
           DistributionDomainName:
             Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
 
@@ -36,31 +50,32 @@ Resources:
   ContactAPIFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello-world/
-      Handler: hello-world
+      CodeUri: src/
+      Handler: contact
       Runtime: go1.x
       Architectures:
         - x86_64
       Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
       Events:
-        CatchAll:
+        Contact:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: POST
+            RestApiId: !Ref RestApi
+        Ping:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+            RestApiId: !Ref RestApi
+        Hello:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /hello
             Method: GET
             RestApiId: !Ref RestApi
-        Ping:
-          Type: Api
-          Properties:
-            Path: /ping
-            Method: GET
-            RestApiId: !Ref RestApi
-        Err:
-          Type: Api
-          Properties:
-            Path: /error
-            Method: GET
-            RestApiId: !Ref RestApi
+        
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           PARAM1: VALUE
@@ -75,7 +90,7 @@ Outputs:
       Ref: RestApi
   ApiURL:
     Description: "API Url"
-    Value: !Sub "https://contact-api.webbtech.io/hello"
+    Value: !Sub "https://contact-api.webbtech.io/"
   ContactAPI:
     Description: "API Gateway endpoint URL for Prod environment for First Function"
     Value: !Sub "https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
