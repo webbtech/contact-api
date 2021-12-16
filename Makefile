@@ -8,17 +8,26 @@ include .env
 build:
 	sam build
 
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html
 local-api:
-	sam local start-api --profile $(PROFILE)
+	sam local start-api --env-vars env.json --debug --profile $(PROFILE)
 
 local-invoke:
-	sam local invoke --profile $(PROFILE)
+	sam local invoke --env-vars env.json --profile $(PROFILE)
 
 dev-cloud:
-	sam  sync --stack-name $(STACK_NAME) --profile $(PROFILE)
+	sam  sync --stack-name $(STACK_NAME) \
+	--profile $(PROFILE) \
+	--parameter-overrides \
+		ParamMailRecipient=$(MAIL_RECIPIENT) \
+		ParamMailSender=$(MAIL_SENDER)
 
 dev-cloud-watch:
-	sam  sync --stack-name $(STACK_NAME) --watch --profile $(PROFILE)
+	sam  sync --stack-name $(STACK_NAME) --watch \
+	--profile $(PROFILE) \
+	--parameter-overrides \
+		ParamMailRecipient=$(MAIL_RECIPIENT) \
+		ParamMailSender=$(MAIL_SENDER)
 
 tail-logs:
 	sam logs -n ContactAPIFunction --profile $(PROFILE) --stack-name $(STACK_NAME) --tail

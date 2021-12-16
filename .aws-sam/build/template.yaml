@@ -8,6 +8,13 @@ Description: 'contact-api
 Globals:
   Function:
     Timeout: 5
+Parameters:
+  ParamMailRecipient:
+    Description: Required. Mail recipient address
+    Type: String
+  ParamMailSender:
+    Description: Required. Mail sender address
+    Type: String
 Resources:
   ApiCertificate:
     Type: AWS::CertificateManager::Certificate
@@ -48,6 +55,9 @@ Resources:
       Architectures:
       - x86_64
       Tracing: Active
+      Policies:
+      - AmazonDynamoDBFullAccess
+      - AmazonSESFullAccess
       Events:
         Contact:
           Type: Api
@@ -72,7 +82,10 @@ Resources:
               Ref: RestApi
       Environment:
         Variables:
-          PARAM1: VALUE
+          RecipientEmail:
+            Ref: ParamMailRecipient
+          SenderEmail:
+            Ref: ParamMailSender
 Outputs:
   ApiId:
     Description: API ID

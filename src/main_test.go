@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func TestHandler(t *testing.T) {
+
+	os.Setenv("SenderEmail", "info@webbtech.io")
+	os.Setenv("RecipientEmail", "info@webbtech.io")
 
 	var msg string
 	t.Run("Successful ping", func(t *testing.T) {
@@ -80,6 +84,22 @@ func TestHandler(t *testing.T) {
 		}
 		if r.StatusCode != 201 {
 			t.Fatalf("Expected StatusCode to be: %d, recieved: %d", 400, r.StatusCode)
+		}
+	})
+}
+
+func TestEnvVars(t *testing.T) {
+	os.Setenv("PARAM1", "VALUE12")
+	t.Run("Successful ping", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer ts.Close()
+
+		_, _ = handler(events.APIGatewayProxyRequest{Path: "/"})
+		p, exists := os.LookupEnv("PARAM1")
+		if !exists {
+			t.Fatalf("Expected value for PARAM1 to be: %s", p)
 		}
 	})
 }

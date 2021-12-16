@@ -10,6 +10,14 @@ Globals:
   Function:
     Timeout: 5
 
+Parameters:
+  ParamMailRecipient:
+    Description: Required. Mail recipient address
+    Type: String
+  ParamMailSender:
+    Description: Required. Mail sender address
+    Type: String
+
 Resources:
   ApiCertificate: # this will require logging into the certificate manager and clicking 'Create Records in Route53'
     Type: AWS::CertificateManager::Certificate
@@ -56,6 +64,9 @@ Resources:
       Architectures:
         - x86_64
       Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Policies: # https://aws.amazon.com/premiumsupport/knowledge-center/lambda-sam-template-permissions/
+      - AmazonDynamoDBFullAccess
+      - AmazonSESFullAccess
       Events:
         Contact:
           Type: Api
@@ -78,22 +89,8 @@ Resources:
         
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          PARAM1: VALUE
-
-  ContactAPIFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-
-
+          RecipientEmail: !Ref ParamMailRecipient
+          SenderEmail: !Ref ParamMailSender
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

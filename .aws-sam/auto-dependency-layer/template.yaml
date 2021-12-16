@@ -8,6 +8,13 @@ Description: 'contact-api
 Globals:
   Function:
     Timeout: 5
+Parameters:
+  ParamMailRecipient:
+    Description: Required. Mail recipient address
+    Type: String
+  ParamMailSender:
+    Description: Required. Mail sender address
+    Type: String
 Resources:
   ApiCertificate:
     Type: AWS::CertificateManager::Certificate
@@ -20,6 +27,16 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+      GatewayResponses:
+        UNAUTHORIZED:
+          StatusCode: 401
+          ResponseTemplates:
+            application/json: '{ "message": $context.error.messageString }'
+          ResponseParameters:
+            Headers:
+              Access-Control-Expose-Headers: '''WWW-Authenticate'''
+              Access-Control-Allow-Origin: '''*'''
+              Access-Control-Allow-Headers: '''*'''
       Domain:
         DomainName: contact-api.webbtech.io
         CertificateArn:
@@ -33,36 +50,42 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ContactAPIFunction
-      Handler: hello-world
+      Handler: contact
       Runtime: go1.x
       Architectures:
       - x86_64
       Tracing: Active
+      Policies:
+      - AmazonDynamoDBFullAccess
+      - AmazonSESFullAccess
       Events:
-        CatchAll:
+        Contact:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: POST
+            RestApiId:
+              Ref: RestApi
+        Ping:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+            RestApiId:
+              Ref: RestApi
+        Hello:
           Type: Api
           Properties:
             Path: /hello
             Method: GET
             RestApiId:
               Ref: RestApi
-        Ping:
-          Type: Api
-          Properties:
-            Path: /ping
-            Method: GET
-            RestApiId:
-              Ref: RestApi
-        Err:
-          Type: Api
-          Properties:
-            Path: /error
-            Method: GET
-            RestApiId:
-              Ref: RestApi
       Environment:
         Variables:
-          PARAM1: VALUE
+          RecipientEmail:
+            Ref: ParamMailRecipient
+          SenderEmail:
+            Ref: ParamMailSender
 Outputs:
   ApiId:
     Description: API ID
@@ -71,7 +94,7 @@ Outputs:
   ApiURL:
     Description: API Url
     Value:
-      Fn::Sub: https://contact-api.webbtech.io/hello
+      Fn::Sub: https://contact-api.webbtech.io/
   ContactAPI:
     Description: API Gateway endpoint URL for Prod environment for First Function
     Value:
