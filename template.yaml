@@ -82,17 +82,12 @@ Resources:
             Path: /
             Method: GET
             RestApiId: !Ref RestApi
-        Hello:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /hello
-            Method: GET
-            RestApiId: !Ref RestApi
         
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           RecipientEmail: !Ref ParamMailRecipient
           SenderEmail: !Ref ParamMailSender
+          Stage: production
       Tags:
         BillTo: 'Webbtech'
 

@@ -20,10 +20,6 @@ const (
 	// CodeBadInput represents a bad Lambda input error.
 	// API Gateway mapping:     400 Bad request
 	CodeBadInput = "BAD_INPUT"
-
-	// CodeInvalidInput represents a bad Lambda input value error.
-	// API Gateway mapping:     422 Unprocessable entity
-	CodeInvalidInput = "INVALID_INPUT"
 )
 
 // StdError struct

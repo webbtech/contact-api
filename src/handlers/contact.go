@@ -3,90 +3,91 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/webbtech/contact-api/db"
 	lerrors "github.com/webbtech/contact-api/errors"
 	"github.com/webbtech/contact-api/mail"
+	"github.com/webbtech/contact-api/model"
 )
 
+// CallBackKey constant
 const CallBackKey = "callback"
 
-type ContactRequest struct {
-	Email     *string `json:"email"`
-	FirstName *string `json:"firstName"`
-	LastName  *string `json:"lastName"`
-	Message   *string `json:"message"`
-	Phone     *string `json:"phone"`
-	Type      *string `json:"type"`
-}
+// Stage variable
+var Stage string
 
+// Contact struct
 type Contact struct {
+	request  events.APIGatewayProxyRequest
 	response events.APIGatewayProxyResponse
-	input    *ContactRequest
+	input    *model.ContactRequest
 }
 
 // ========================== Public Methods =============================== //
 
-func (c *Contact) Process(request events.APIGatewayProxyRequest) {
+func (c *Contact) process() {
 
 	rb := responseBody{}
+	var body []byte
 	var stdError *lerrors.StdError
 	var statusCode int = 201
 
-	json.Unmarshal([]byte(request.Body), &c.input)
+	json.Unmarshal([]byte(c.request.Body), &c.input)
 	if c.input == nil {
-		rb.Message = "Missing input values"
-		body, _ := json.Marshal(&rb)
-		c.response = events.APIGatewayProxyResponse{
-			Body:       string(body),
-			Headers:    headers,
+		stdError = &lerrors.StdError{
+			Caller:     "handlers.Contact.Process",
+			Code:       lerrors.CodeBadInput,
+			Err:        errors.New("Missing request body"),
+			Msg:        "Missing request body",
 			StatusCode: 400,
 		}
-		return
 	}
 
 	// validate input
-	err := c.validateInput()
-	if err != nil && errors.As(err, &stdError) {
-		rb.Message = stdError.Msg
-		rb.Code = stdError.Code
-		statusCode = stdError.StatusCode
-		body, _ := json.Marshal(&rb)
-
-		c.response = events.APIGatewayProxyResponse{
-			Body:       string(body),
-			Headers:    headers,
-			StatusCode: statusCode,
+	if stdError == nil {
+		err := c.validateInput()
+		if err != nil {
+			errors.As(err, &stdError)
 		}
-
-		log.Error(err)
-		return
 	}
 
-	// send mail
-	_, err = mail.Send()
-	if err != nil && errors.As(err, &stdError) {
-		rb.Message = stdError.Msg
-		rb.Code = stdError.Code
-		statusCode = stdError.StatusCode
-		body, _ := json.Marshal(&rb)
-
-		c.response = events.APIGatewayProxyResponse{
-			Body:       string(body),
-			Headers:    headers,
-			StatusCode: statusCode,
+	// Send email
+	if stdError == nil {
+		mail := mail.Init(c.input)
+		_, err := mail.Send()
+		if err != nil {
+			errors.As(err, &stdError)
 		}
-
-		log.Error(stdError)
-		return
 	}
 
-	// if we got this far, all is good
-	rb.Message = "Success"
-	body, _ := json.Marshal(&rb)
+	// Create db record
+	if stdError == nil {
+		var r db.PersistContact
+		r = db.Init(c.input)
+		err := r.Record()
+		if err != nil {
+			errors.As(err, &stdError)
+		}
+	}
+
+	// Process error
+	if stdError != nil {
+		rb.Code = stdError.Code
+		rb.Message = stdError.Msg
+		statusCode = stdError.StatusCode
+		logError(stdError)
+	} else {
+		rb.Code = "SUCCESS"
+		rb.Message = "Success"
+	}
+
+	// Now creact the actual response object
+	body, _ = json.Marshal(&rb)
 	c.response = events.APIGatewayProxyResponse{
 		Body:       string(body),
 		Headers:    headers,
@@ -94,8 +95,9 @@ func (c *Contact) Process(request events.APIGatewayProxyRequest) {
 	}
 }
 
-func (c *Contact) Response() (events.APIGatewayProxyResponse, error) {
-	// mail.Send()
+func (c *Contact) Response(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	c.request = request
+	c.process()
 	return c.response, nil
 }
 
@@ -132,4 +134,15 @@ func (c *Contact) validateInput() (err *lerrors.StdError) {
 	}
 
 	return nil
+}
+
+// NOTE: this could go into it's own package etc. if we decide to use this method
+func logError(err *lerrors.StdError) {
+	if Stage == "" {
+		Stage = os.Getenv("Stage")
+	}
+
+	if Stage != "test" {
+		log.Error(err)
+	}
 }

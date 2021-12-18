@@ -5,7 +5,7 @@
 codeuri = "/Users/rondyck/go/src/github.com/webbtech/contact-api/src"
 runtime = "go1.x"
 architecture = "x86_64"
-source_hash = "1dabab46df6ef1c65652eccf9bae831f19b77a632eecb261473979fd48f8090f"
+source_hash = "4df8f94d42d8b20d3e0fdf9de4e1918ffee9f09b499718a13f808f913a24dbc1"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ContactAPIFunction"]
