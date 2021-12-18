@@ -4,7 +4,9 @@ package mail
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -12,50 +14,35 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 
 	lerrors "github.com/webbtech/contact-api/errors"
+	"github.com/webbtech/contact-api/model"
 )
 
-var Sender string
-var Recipient string
+// TODO: create test for this package
+type Mail struct {
+	contactInfo *model.ContactRequest
+}
 
-/* func init() {
-	senderEmail, exists := os.LookupEnv("SenderEmail")
-	if !exists {
-		log.Fatal("Missing environment variable 'SenderEmail'")
-		return
-	}
-	Sender = senderEmail
-} */
+var (
+	Sender    string
+	Recipient string
+	Subject   string
+	HtmlBody  string
+	TextBody  string
+)
 
 const (
-	// Replace sender@example.com with your "From" address.
-	// This address must be verified with Amazon SES.
-	// Sender = "info@webbtech.io"
-	// Sender = senderEmail
-
-	// Replace recipient@example.com with a "To" address. If your account
-	// is still in the sandbox, this address must be verified.
-	// Recipient = "rond@webbtech.io"
-
-	// Specify a configuration set. To use a configuration
-	// set, comment the next line and line 92.
-	//ConfigurationSet = "ConfigSet"
-
-	// The subject line for the email.
-	Subject = "Amazon SES Test (AWS SDK for Go)"
-
-	// The HTML body for the email.
-	HtmlBody = "<h1>Amazon SES Test Email (AWS SDK for Go)</h1><p>This email was sent with " +
-		"<a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the " +
-		"<a href='https://aws.amazon.com/sdk-for-go/'>AWS SDK for Go</a>.</p>"
-
-	//The email body for recipients with non-HTML email clients.
-	TextBody = "This email was sent with Amazon SES using the AWS SDK for Go."
-
+	MaxMsgLength = 500
 	// The character encoding for the email.
 	CharSet = "UTF-8"
 )
 
-func Send() (res *ses.SendEmailOutput, e *lerrors.StdError) {
+func Init(info *model.ContactRequest) *Mail {
+	return &Mail{contactInfo: info}
+}
+
+func (m *Mail) Send() (res *ses.SendEmailOutput, e *lerrors.StdError) {
+
+	m.setInfo()
 
 	// Check if we have sender and recipient in our environment
 	senderEmail, exists := os.LookupEnv("SenderEmail")
@@ -64,20 +51,19 @@ func Send() (res *ses.SendEmailOutput, e *lerrors.StdError) {
 		e = &lerrors.StdError{Caller: "mail.Send", Err: err, Msg: "Email failed to send", StatusCode: 500}
 		return nil, e
 	}
-	Sender = senderEmail
+	Sender = fmt.Sprintf("Webbtech Contact <%s>", senderEmail)
+
 	recipientEmail, exists := os.LookupEnv("RecipientEmail")
 	if !exists {
 		err := errors.New("Missing environment variable 'RecipientEmail'")
 		e = &lerrors.StdError{Caller: "mail.Send", Err: err, Msg: "Email failed to send", StatusCode: 500}
 		return nil, e
 	}
-	Recipient = recipientEmail
+	Recipient = fmt.Sprintf("Webbtech Admin <%s>", recipientEmail)
 
-	// Create a new session in the ca-central-1 region.
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("ca-central-1")})
 
-	// Create an SES session.
 	svc := ses.New(sess)
 
 	// Assemble the email.
@@ -105,8 +91,6 @@ func Send() (res *ses.SendEmailOutput, e *lerrors.StdError) {
 			},
 		},
 		Source: aws.String(Sender),
-		// Uncomment to use a configuration set
-		//ConfigurationSetName: aws.String(ConfigurationSet),
 	}
 
 	// Attempt to send the email.
@@ -120,7 +104,36 @@ func Send() (res *ses.SendEmailOutput, e *lerrors.StdError) {
 			e = &lerrors.StdError{Caller: "aws.SendEmail", Code: "unknown", Err: err, Msg: "Email failed to send", StatusCode: 500}
 		}
 	}
-	// fmt.Printf("e.Error: %+v\n", e.Error())
 
 	return res, e
+}
+
+func (m *Mail) setInfo() {
+
+	info := *m.contactInfo
+	name := fmt.Sprintf("%s %s", *info.FirstName, *info.LastName)
+
+	// Ensure we didn't get a larger than allowed message
+	msg := *info.Message
+	msgLen := len(msg)
+	if msgLen > MaxMsgLength {
+		msg = msg[:msgLen-MaxMsgLength]
+	}
+
+	Subject = fmt.Sprintf("A Contact Request from: %s", name)
+	HtmlBody = "<h1>A Contact Request has been made by: " + fmt.Sprintf("%s", name) + "</h1>" +
+		"<div>" + fmt.Sprintf("First name: %s", *info.FirstName) + "</div>" +
+		"<div>" + fmt.Sprintf("Last name: %s", *info.LastName) + "</div>" +
+		"<div>" + fmt.Sprintf("Email: %s", *info.Email) + "</div>" +
+		"<div>" + fmt.Sprintf("Phone: %s", *info.Phone) + "</div>" +
+		"<div>" + fmt.Sprintf("Request type: %s", *info.Type) + "</div>" +
+		"<div><br />" + fmt.Sprintf("Message: <br />%s", strings.Replace(msg, "\n", "<br />", -1)) + "</div>"
+
+	TextBody = fmt.Sprintf("A Contact Request has been made by: %s \n", name) +
+		fmt.Sprintf("First name: %s\n", *info.FirstName) +
+		fmt.Sprintf("Last name: %s\n", *info.LastName) +
+		fmt.Sprintf("Email: %s\n", *info.Email) +
+		fmt.Sprintf("Phone: %s\n", *info.Phone) +
+		fmt.Sprintf("Request type: %s\n", *info.Type) +
+		fmt.Sprintf("\nMessage:\n%s\n", msg)
 }

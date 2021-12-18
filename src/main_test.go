@@ -14,6 +14,7 @@ func TestHandler(t *testing.T) {
 
 	os.Setenv("SenderEmail", "info@webbtech.io")
 	os.Setenv("RecipientEmail", "info@webbtech.io")
+	os.Setenv("Stage", "test")
 
 	var msg string
 	t.Run("Successful ping", func(t *testing.T) {
@@ -42,7 +43,7 @@ func TestHandler(t *testing.T) {
 
 		r, _ := handler(events.APIGatewayProxyRequest{HTTPMethod: "POST", Path: "/contact", Body: ""})
 
-		expectedMsg := "Missing input values"
+		expectedMsg := "Missing request body"
 		msg = extractMessage(r.Body)
 		if msg != expectedMsg {
 			t.Fatalf("Expected error message: %s received: %s", expectedMsg, msg)
@@ -68,7 +69,7 @@ func TestHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("Contact request missing input values", func(t *testing.T) {
+	t.Run("Contact request success", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 		}))

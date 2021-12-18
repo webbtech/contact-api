@@ -1,7 +1,7 @@
 include .env
 
 # found 'watcher' at https://github.com/canthefason/go-watcher
-# that wasn't working as expected, so found 'fswatch' at: https://github.com/emcrisostomo/fswatch
+# that wasn't working as expected, so found and switched 'fswatch' at: https://github.com/emcrisostomo/fswatch
 
 .PHONY: build
 
@@ -10,7 +10,7 @@ build:
 
 # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html
 local-api:
-	sam local start-api --env-vars env.json --debug --profile $(PROFILE)
+	sam local start-api --env-vars env.json --profile $(PROFILE)
 
 local-invoke:
 	sam local invoke --env-vars env.json --profile $(PROFILE)

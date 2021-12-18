@@ -7,10 +7,16 @@ import (
 )
 
 type Ping struct {
+	request  events.APIGatewayProxyRequest
 	response events.APIGatewayProxyResponse
 }
 
-func (c *Ping) Process(request events.APIGatewayProxyRequest) {
+func (c *Ping) Response(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	c.process()
+	return c.response, nil
+}
+
+func (c *Ping) process() {
 	rb := responseBody{Message: "Healthy"}
 	body, _ := json.Marshal(&rb)
 
@@ -19,8 +25,4 @@ func (c *Ping) Process(request events.APIGatewayProxyRequest) {
 		Headers:    headers,
 		StatusCode: 200,
 	}
-}
-
-func (c *Ping) Response() (events.APIGatewayProxyResponse, error) {
-	return c.response, nil
 }

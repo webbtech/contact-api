@@ -5,8 +5,8 @@ import "github.com/aws/aws-lambda-go/events"
 var headers map[string]string = map[string]string{"Content-Type": "application/json"}
 
 type Handler interface {
-	Response() (events.APIGatewayProxyResponse, error)
-	Process(request events.APIGatewayProxyRequest)
+	Response(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+	process()
 }
 
 type response struct {
@@ -16,7 +16,6 @@ type response struct {
 }
 
 type responseBody struct {
-	Code    string      `json:"code"`
-	Data    interface{} `json:"data"`
-	Message string      `json:"message"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }

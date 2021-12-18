@@ -27,6 +27,8 @@ Resources:
     DependsOn: ContactAPIFunction
     Properties:
       StageName: Prod
+      Tags:
+        BillTo: Webbtech
       GatewayResponses:
         UNAUTHORIZED:
           StatusCode: 401
@@ -73,19 +75,15 @@ Resources:
             Method: GET
             RestApiId:
               Ref: RestApi
-        Hello:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: GET
-            RestApiId:
-              Ref: RestApi
       Environment:
         Variables:
           RecipientEmail:
             Ref: ParamMailRecipient
           SenderEmail:
             Ref: ParamMailSender
+          Stage: production
+      Tags:
+        BillTo: Webbtech
 Outputs:
   ApiId:
     Description: API ID
